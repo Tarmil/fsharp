@@ -7222,8 +7222,12 @@ and TcComputationExpression cenv env overallTy mWhole interpExpr builderTy tpenv
                         | SequencePointsAtSeq -> SequencePointAtBinding m
                     Some(trans true q varSpace (SynExpr.LetOrUseBang(sp, false, true, SynPat.Const(SynConst.Unit, rhsExpr.Range), rhsExpr, innerComp2, m)) translatedCtxt)
                 // "expr; cexpr" is treated as sequential execution
-                | _ -> 
-                    Some (trans true q varSpace innerComp2 (fun holeFill -> translatedCtxt (SynExpr.Sequential(sp,true, innerComp1, holeFill, m))))
+                | _ ->
+                    if isNil (TryFindIntrinsicOrExtensionMethInfo cenv env m ad "Sequence" builderTy) then
+                        Some (trans true q varSpace innerComp2 (fun holeFill -> translatedCtxt (SynExpr.Sequential(sp,true, innerComp1, holeFill, m))))
+                    else
+                        Some (trans true q varSpace innerComp2 (fun holeFill -> translatedCtxt (mkSynCall "Sequence" m [innerComp1; holeFill])))
+
 
         | SynExpr.IfThenElse (guardExpr,thenComp,elseCompOpt,spIfToThen,isRecovery,mIfToThen,mIfToEndOfElseBranch) ->
             match elseCompOpt with 
@@ -7352,7 +7356,12 @@ and TcComputationExpression cenv env overallTy mWhole interpExpr builderTy tpenv
             if isNil (TryFindIntrinsicOrExtensionMethInfo cenv env m ad methName builderTy) then error(Error(FSComp.SR.tcRequireBuilderMethod(methName),m))
             Some(translatedCtxt (mkSynCall methName m [yieldExpr]))
 
-        | _ -> None
+        | e ->
+            let m = e.Range
+            if isNil (TryFindIntrinsicOrExtensionMethInfo cenv env m ad "Sequence" builderTy) then
+                None
+            else
+                Some (translatedCtxt (mkSynCall "Sequence" m [e; (mkSynCall "Zero" m [])]))
 
     and transNoQueryOps comp = trans true false emptyVarSpace comp id
     and trans firstTry q varSpace comp translatedCtxt = 
