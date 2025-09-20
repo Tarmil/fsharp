@@ -308,6 +308,26 @@ module Internal =
                         ()
                 }
 
+        let replicateInfinite x =
+            let mutable started = false
+
+            { new IEnumerator<_> with
+                member this.Current =
+                    if not started then notStarted ()
+                    x
+
+              interface IEnumerator with
+                  member this.MoveNext() =
+                      if not started then started <- true
+                      true
+
+                  member this.Reset() = ()
+
+                  member this.Current = box x
+
+              interface IDisposable with
+                  member this.Dispose() = () }
+
         let upto lastOption f =
             match lastOption with
             | Some b when b < 0 -> Empty() // a request for -ve length returns empty sequence
@@ -955,6 +975,20 @@ module Seq =
     [<CompiledName("Replicate")>]
     let replicate count initial =
         System.Linq.Enumerable.Repeat(initial, count)
+
+    [<CompiledName("ReplicateInfinite")>]
+    let replicateInfinite initial =
+        mkSeq (fun () -> IEnumerator.replicateInfinite initial)
+
+    [<CompiledName("Repeat")>]
+    let repeat count source =
+        checkNonNull "source" source
+        RuntimeHelpers.mkConcatSeq (replicate count source)
+
+    [<CompiledName("RepeatInfinite")>]
+    let repeatInfinite source =
+        checkNonNull "source" source
+        RuntimeHelpers.mkConcatSeq (replicateInfinite source)
 
     [<CompiledName("Append")>]
     let append (source1: seq<'T>) (source2: seq<'T>) =

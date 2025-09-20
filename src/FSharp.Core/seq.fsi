@@ -2004,6 +2004,56 @@ module Seq =
     [<CompiledName("Replicate")>]
     val replicate: count: int -> initial: 'T -> seq<'T>
 
+    /// <summary>Creates a sequence by replicating the given initial value infinitely.</summary>
+    /// <param name="initial">The value to replicate</param>
+    ///
+    /// <returns>The generated sequence.</returns>
+    ///
+    /// <example id="repeat-1">
+    /// <code lang="fsharp">
+    /// Seq.replicateInfinite "a"
+    /// </code>
+    /// Evaluates to a sequence yielding the same results as <c>seq { "a"; "a"; "a"; "a"; "a"; ... }</c>.
+    /// </example>
+    [<CompiledName("ReplicateInfinite")>]
+    val replicateInfinite : initial: 'T -> seq<'T>
+
+    /// <summary>Returns a new sequence yielding the values yielded by <c>source</c> repeated <c>count</c> times.</summary>
+    /// <param name="count">The number of times to repeat <c>source</c>.</param>
+    /// <param name="source">The source sequence to repeat.</param>
+    ///
+    /// <returns>A sequence containing <c>source</c> repeated <c>count</c> times.</returns>
+    ///
+    /// <exception cref="T:System.ArgumentException">Thrown when count is less than 0.</exception>
+    /// <exception cref="T:System.ArgumentNullException">Thrown when the input sequence is null.</exception>
+    ///
+    /// <example id="repeat-1">
+    /// <code lang="fsharp">
+    /// let source = seq { 1; 2; 3 }
+    /// source |> Seq.repeat 3
+    /// </code>
+    /// Evaluates to a sequence yielding the same results as <c>seq { 1; 2; 3; 1; 2; 3; 1; 2; 3 }</c>.
+    /// </example>
+    [<CompiledName("Repeat")>]
+    val repeat : count: int -> source: seq<'T> -> seq<'T>
+
+    /// <summary>Returns a new sequence yielding the values yielded by <c>source</c> repeated forever.</summary>
+    /// <param name="source">The source sequence to repeat.</param>
+    ///
+    /// <returns>A sequence containing <c>source</c> repeated infinitely.</returns>
+    ///
+    /// <exception cref="T:System.ArgumentNullException">Thrown when the input sequence is null.</exception>
+    /// 
+    /// <example id="repeat-1">
+    /// <code lang="fsharp">
+    /// let source = seq { 1; 2; 3 }
+    /// source |> Seq.repeatInfinite
+    /// </code>
+    /// Evaluates to a sequence yielding the same results as <c>seq { 1; 2; 3; 1; 2; 3; 1; 2; 3; ... }</c>.
+    /// </example>
+    [<CompiledName("RepeatInfinite")>]
+    val repeatInfinite : source: seq<'T> -> seq<'T>
+
     /// <summary>Applies a function to each element of the sequence, starting from the end, threading an accumulator argument
     /// through the computation. If the input function is <c>f</c> and the elements are <c>i0...iN</c>
     /// then computes <c>f i0 (...(f iN-1 iN))</c>.</summary>

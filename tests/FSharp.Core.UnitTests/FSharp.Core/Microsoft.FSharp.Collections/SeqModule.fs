@@ -143,7 +143,25 @@ type SeqModule() =
 
         CheckThrowsArgumentOutOfRangeException (fun () ->  Seq.replicate -1 null |> ignore)
         
-        
+    [<Fact>]
+    member _.replicateInfinite() =
+        Assert.AreEqual(["1";"1";"1";"1"], Seq.replicateInfinite "1" |> Seq.take 4 |> Seq.toList)
+
+    [<Fact>]
+    member _.repeat() =
+        Assert.True(Seq.isEmpty <| Seq.repeat 0 (seq { 1; 2; 3 }))
+        Assert.True(Seq.isEmpty <| Seq.repeat 5 Seq.empty)
+        Assert.AreEqual(["a"; "b"; "c"; "a"; "b"; "c"], Seq.repeat 2 (seq { "a"; "b"; "c" }) |> Seq.toList)
+
+        CheckThrowsArgumentException (fun () -> Seq.repeat 3 null |> ignore)
+        CheckThrowsArgumentOutOfRangeException (fun () ->  Seq.repeat -1 (seq { 1 }) |> ignore)
+
+    [<Fact>]
+    member _.repeatInfinite() =
+        Assert.AreEqual(["a"; "b"; "c"; "a"; "b"; "c"; "a"], Seq.repeatInfinite (seq { "a"; "b"; "c" }) |> Seq.take 7 |> Seq.toList)
+
+        CheckThrowsArgumentException (fun () -> Seq.repeatInfinite null |> ignore)
+
     [<Fact>]
     member _.Average() =
         // empty Seq 
