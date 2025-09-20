@@ -712,6 +712,41 @@ module Map =
     [<CompiledName("TryFindKey")>]
     val tryFindKey: predicate: ('Key -> 'T -> bool) -> table: Map<'Key, 'T> -> 'Key option
 
+    /// <summary>Returns a map containing all key-value pairs from both given maps.
+    /// If a key is present in both maps, the returned map contains the value from <paramref name="m2"/>.</summary>
+    /// <param name="m1">The first map.</param>
+    /// <param name="m2">The second map.</param>
+    /// <returns>The union of both maps.</returns>
+    ///
+    /// <example id="union-1">
+    /// <code lang="fsharp">
+    /// let sample1 = Map [ (1, "a"); (2, "b") ]
+    /// let sample2 = Map [ (2, "c"); (3, "d") ]
+    ///
+    /// Map.union sample1 sample2 // evaluates to Map [ (1, "a"); (2, "c"); (3, "d") ]
+    /// </code>
+    /// </example>
+    [<CompiledName("Union")>]
+    val union: m1: Map<'Key, 'Value> -> m2: Map<'Key, 'Value> -> Map<'Key, 'Value>
+
+    /// <summary>Returns a map containing all key-value pairs from both given maps.
+    /// If a key is present in both maps, the function <paramref name="onCollision"/> decides what value to include in the returned map.</summary>
+    /// <param name="onCollision">The function deciding what value to include when a key is present in both maps.</param>
+    /// <param name="m1">The first map.</param>
+    /// <param name="m2">The second map.</param>
+    /// <returns>The union of both maps.</returns>
+    ///
+    /// <example id="unionwith-1">
+    /// <code lang="fsharp">
+    /// let sample1 = Map [ (1, "a"); (2, "b") ]
+    /// let sample2 = Map [ (2, "c"); (3, "d") ]
+    ///
+    /// Map.unionWith (fun k v1 v2 -> v1 + v2) sample1 sample2 // evaluates to Map [ (1, "a"); (2, "bc"); (3, "d") ]
+    /// </code>
+    /// </example>
+    [<CompiledName("UnionWith")>]
+    val unionWith: onCollision:('Key -> 'Value -> 'Value -> 'Value) -> m1: Map<'Key, 'Value> -> m2: Map<'Key, 'Value> -> Map<'Key, 'Value>
+
     /// <summary>The number of bindings in the map.</summary>
     ///
     /// <example id="count-1">
