@@ -316,6 +316,90 @@ type MapModule() =
                
         ()       
 
+    [<Fact>]
+    member _.Union() =
+        let emptyMap1 : Map<int, string> = Map.empty
+        let emptyMap2 : Map<int, string> = Map.empty
+        let four                         = new Map<int, string>([(4, "four")])
+
+        let emptyUnionEmpty = Map.union emptyMap1 emptyMap2
+        Assert.True( (emptyUnionEmpty = emptyMap1) )
+
+        let xUnionEmpty = Map.union four emptyMap1
+        Assert.True( (four = xUnionEmpty) )
+
+        let emptyUnionX = Map.union emptyMap1 four
+        Assert.True( (four = emptyUnionX) )
+
+    [<Fact>]
+    member _.Union2() =
+        let a = new Map<int, string>([(1, "one"); (2, "two"); (3, "three"); (4, "four")])
+        let b = new Map<int, string>([(5, "five"); (6, "six"); (7, "seven"); (8, "eight")])
+
+        let union = Map.union a b
+        let expectedResult = new Map<int, string>([
+            1, "one"
+            2, "two"
+            3, "three"
+            4, "four"
+            5, "five"
+            6, "six"
+            7, "seven"
+            8, "eight"
+        ])
+        Assert.AreEqual(union, expectedResult)
+
+    [<Fact>]
+    member _.Union3() =
+        let x = new Map<int, string>([(1, "one")])
+        let x = Map.union x (new Map<int, string>([(1, "two")]))
+        let x = Map.union x (new Map<int, string>([(1, "three")]))
+        let x = Map.union x (new Map<int, string>([(1, "four")]))
+
+        Assert.AreEqual(x, new Map<int, string>([(1, "four")]))
+
+    [<Fact>]
+    member _.UnionWith() =
+        let x1 = new Map<int, string>([(1, "a"); (2, "b")])
+        let x2 = new Map<int, string>([(2, "c"); (3, "d")])
+
+        let result = Map.unionWith (fun k v1 v2 -> string k + v1 + v2) x1 x2
+        Assert.AreEqual(result, new Map<int, string>([(1, "a"); (2, "2bc"); (3, "d")]))
+
+    [<Fact>]
+    member _.UnionMany() =
+        let odds  = new Map<int, string>([(1, "one"); (3, "three"); (5, "five"); (7, "seven"); (9, "nine")])
+        let evens = new Map<int, string>([(2, "two"); (4, "four"); (6, "six"); (8, "eight"); (10, "ten")])
+        let empty = Map.empty : Map<int, string>
+        let rest  = new Map<int, string>([(11, "eleven"); (12, "twelve"); (13, "thirteen")])
+        let zero  = new Map<int, string>([0, "zero"])
+
+        let result = Map.unionMany [odds; evens; empty; rest; zero]
+        Assert.True(result.Count = 14)
+
+    [<Fact>]
+    member _.UnionMany2() =
+        let result = Map.unionMany (Seq.empty : seq<Map<int, string>>)
+        Assert.True(result.Count = 0)
+
+    [<Fact>]
+    member _.UnionMany3() =
+        let map1 = new Map<int, string>([ (1, "a"); (2, "b") ])
+        let map2 = new Map<int, string>([ (2, "c"); (3, "d") ])
+        let map3 = new Map<int, string>([ (2, "e"); (4, "f") ])
+
+        let result = Map.unionMany [map1; map2; map3]
+        Assert.AreEqual(result, new Map<int, string>([(1, "a"); (2, "e"); (3, "d"); (4, "f")]))
+
+    [<Fact>]
+    member _.UnionManyWith() =
+        let map1 = new Map<int, string>([ (1, "a"); (2, "b") ])
+        let map2 = new Map<int, string>([ (2, "c"); (3, "d") ])
+        let map3 = new Map<int, string>([ (2, "e"); (4, "f") ])
+
+        let result = Map.unionManyWith (fun k v1 v2 -> "(" + string k + v1 + v2 + ")") [map1; map2; map3]
+        Assert.AreEqual(result, new Map<int, string>([(1, "a"); (2, "(2(2bc)e)"); (3, "d"); (4, "f")]))
+
 
     [<Fact>]
     member _.IsEmpty() =

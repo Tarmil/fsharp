@@ -563,12 +563,12 @@ module MapTree =
 
             if c < 0 then // pivot t1
                 let t11Lo, pivotValue, t11Hi = split comparer f pivot v tn.Left
-                t11Lo, pivotValue, balance comparer t11Hi tn.Key v tn.Right
+                t11Lo, pivotValue, balance comparer t11Hi tn.Key tn.Value tn.Right
             elif c = 0 then // pivot is k1
-                tn.Left, v, tn.Right
+                tn.Left, f pivot v tn.Value, tn.Right
             else // pivot t2
-                let t12Lo, havePivot, t12Hi = split comparer f pivot v tn.Right
-                balance comparer tn.Left tn.Key v t12Lo, havePivot, t12Hi
+                let t12Lo, pivotValue, t12Hi = split comparer f pivot v tn.Right
+                balance comparer tn.Left tn.Key tn.Value t12Lo, pivotValue, t12Hi
 
     let rec union comparer f (t1: MapTree<'Key, 'Value>) (t2: MapTree<'Key, 'Value>) =
         // Perf: tried bruteForce for low heights, but nothing significant
@@ -577,9 +577,15 @@ module MapTree =
         elif isEmpty t2 then
             t1
         else if t1.Height = 1 then
-            add comparer t1.Key t1.Value t2
+            change comparer t1.Key (function
+                | Some t2v -> Some (f t1.Key t1.Value t2v)
+                | None -> Some t1.Value
+            ) t2
         else if t2.Height = 1 then
-            add comparer t2.Key t2.Value t1
+            change comparer t2.Key (function
+                | Some t1v -> Some (f t2.Key t1v t2.Value)
+                | None -> Some t2.Value
+            ) t1
         else
             let t1n = asNode t1
             let t2n = asNode t2 // (t1l < k < t1r) AND (t2l < k2 < t2r)
@@ -594,7 +600,7 @@ module MapTree =
             else
                 let lo, pivotValue, hi = split comparer f t2n.Key t2n.Value t1 in
 
-                balance comparer (union comparer f t2n.Left lo) t2n.Key pivotValue (union comparer f t2n.Right hi)
+                balance comparer (union comparer f lo t2n.Left) t2n.Key pivotValue (union comparer f hi t2n.Right)
 
     let toList (m: MapTree<'Key, 'Value>) =
         let rec loop (m: MapTree<'Key, 'Value>) acc =
