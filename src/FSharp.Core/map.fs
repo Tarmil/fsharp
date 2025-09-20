@@ -913,6 +913,12 @@ type Map<[<EqualityConditionalOn>] 'Key, [<EqualityConditionalOn; ComparisonCond
     member m1.Union(m2: Map<_, _>) =
         m1.Union(m2, fun _ _ v -> v)
 
+    static member Union(maps) =
+        Seq.fold (fun (m1: Map<_, _>) m2 -> m1.Union(m2)) Map.Empty maps
+
+    static member Union(maps, onCollision) =
+        Seq.fold (fun (m1: Map<_, _>) m2 -> m1.Union(m2, onCollision)) Map.Empty maps
+
     member m.ToList() =
         MapTree.toList tree
 
@@ -1343,6 +1349,14 @@ module Map =
     [<CompiledName("UnionWith")>]
     let unionWith onCollision (m1: Map<_, _>) (m2: Map<_, _>) =
         m1.Union(m2, onCollision)
+
+    [<CompiledName("UnionMany")>]
+    let unionMany maps =
+        Map<_, _>.Union maps
+
+    [<CompiledName("UnionManyWith")>]
+    let unionManyWith onCollision maps =
+        Map<_, _>.Union(maps, onCollision)
 
     [<CompiledName("OfList")>]
     let ofList (elements: ('Key * 'Value) list) =

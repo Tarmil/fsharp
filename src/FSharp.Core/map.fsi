@@ -747,6 +747,41 @@ module Map =
     [<CompiledName("UnionWith")>]
     val unionWith: onCollision:('Key -> 'Value -> 'Value -> 'Value) -> m1: Map<'Key, 'Value> -> m2: Map<'Key, 'Value> -> Map<'Key, 'Value>
 
+    /// <summary>Returns a map containing all key-value pairs from the given maps.
+    /// If a key is present in multiple maps, the returned map contains the value from the last one.</summary>
+    /// <param name="maps">The maps.</param>
+    /// <returns>The union of all maps.</returns>
+    ///
+    /// <example id="unionmany-1">
+    /// <code lang="fsharp">
+    /// let sample1 = Map [ (1, "a"); (2, "b") ]
+    /// let sample2 = Map [ (2, "c"); (3, "d") ]
+    /// let sample3 = Map [ (2, "e"); (4, "f") ]
+    ///
+    /// Map.unionMany [ sample1; sample2; sample3 ] // evaluates to Map [ (1, "a"); (2, "e"); (3, "d"); (4, "f") ]
+    /// </code>
+    /// </example>
+    [<CompiledName("UnionMany")>]
+    val unionMany: maps: seq<Map<'Key, 'Value>> -> Map<'Key, 'Value>
+
+    /// <summary>Returns a map containing all key-value pairs from the given maps.
+    /// If a key is present in multiple maps, the function <paramref name="onCollision"/> is called with the first two occurrences, then the result of this call and the third occurrence, and so on, to decide the value to include in the returned map.</summary>
+    /// <param name="onCollision">The function deciding what value to include when a key is present in multiple maps.</param>
+    /// <param name="maps">The maps.</param>
+    /// <returns>The union of all maps.</returns>
+    ///
+    /// <example id="unionmanywith-1">
+    /// <code lang="fsharp">
+    /// let sample1 = Map [ (1, "a"); (2, "b") ]
+    /// let sample2 = Map [ (2, "c"); (3, "d") ]
+    /// let sample3 = Map [ (2, "e"); (4, "f") ]
+    ///
+    /// Map.unionManyWith (fun k v1 v2 -> v1 + v2) [ sample1; sample2; sample3 ] // evaluates to Map [ (1, "a"); (2, "bce"); (3, "d"); (4, "f") ]
+    /// </code>
+    /// </example>
+    [<CompiledName("UnionManyWith")>]
+    val unionManyWith: onCollision:('Key -> 'Value -> 'Value -> 'Value) -> maps: seq<Map<'Key, 'Value>> -> Map<'Key, 'Value>
+
     /// <summary>The number of bindings in the map.</summary>
     ///
     /// <example id="count-1">
