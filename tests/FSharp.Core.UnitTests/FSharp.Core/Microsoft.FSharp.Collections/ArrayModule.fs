@@ -351,7 +351,15 @@ type ArrayModule() =
         Assert.AreEqual([|"1";"1"|],Array.replicate 2 "1")
 
         CheckThrowsArgumentException (fun () ->  Array.replicate -1 null |> ignore)
-        
+
+    [<Fact>]
+    member _.repeat() =
+        Assert.True(Array.isEmpty <| Array.repeat 0 [| 1; 2; 3 |])
+        Assert.True(Array.isEmpty <| Array.repeat 5 [||])
+        Assert.AreEqual([| "a"; "b"; "c"; "a"; "b"; "c" |], Array.repeat 2 [| "a"; "b"; "c" |])
+
+        CheckThrowsArgumentException (fun () ->  Array.repeat -1 [| 1 |] |> ignore)
+
     [<Fact>]
     member _.Blit() = 
         // int array   

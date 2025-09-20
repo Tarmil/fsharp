@@ -141,6 +141,24 @@ module Array =
 
         arr
 
+    [<CompiledName("Repeat")>]
+    let repeat count (source: 'T array) =
+        if count < 0 then
+            invalidArgInputMustBeNonNegative "count" count
+
+        if count = 0 || source.Length = 0 then
+            [||]
+        else
+            let sourceLen = source.Length
+            let resLen = count * sourceLen
+            let res: 'T array =
+                Microsoft.FSharp.Primitives.Basics.Array.zeroCreateUnchecked resLen
+
+            for i in 0 .. sourceLen .. resLen - 1 do
+                Array.Copy(source, 0, res, i, sourceLen)
+
+            res
+
     [<CompiledName("Collect")>]
     let collect (mapping: 'T -> 'U array) (array: 'T array) : 'U array =
         checkNonNull "array" array

@@ -3418,6 +3418,24 @@ module Array =
     [<CompiledName("RandomSampleBy")>]
     val randomSampleBy: randomizer: (unit -> float) -> count: int -> source: 'T array -> 'T array
 
+    /// <summary>Returns a new array whose content is the content of <c>source</c> repeated <c>count</c> times.</summary>
+    /// <param name="count">The number of times to repeat <c>source</c>.</param>
+    /// <param name="source">The source array to repeat.</param>
+    ///
+    /// <returns>An array containing <c>source</c> repeated <c>count</c> times.</returns>
+    ///
+    /// <exception cref="T:System.ArgumentException">Thrown when count is less than 0.</exception>
+    ///
+    /// <example id="repeat-1">
+    /// <code lang="fsharp">
+    /// let source = [| 1; 2; 3; 4 |]
+    /// source |> Array.repeat 3
+    /// </code>
+    /// evaluates to <c>[| 1; 2; 3; 1; 2; 3; 1; 2; 3 |]</c>.
+    /// </example>
+    [<CompiledName("Repeat")>]
+    val repeat: count: int -> source: 'T array -> 'T array
+
     /// <summary>Provides parallel operations on arrays </summary>
     module Parallel =
 
