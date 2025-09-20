@@ -500,6 +500,14 @@ type ListModule() =
         CheckThrowsArgumentException (fun () ->  List.replicate -1 null |> ignore)
 
     [<Fact>]
+    member _.repeat() =
+        Assert.True(List.isEmpty <| List.repeat 0 [ 1; 2; 3 ])
+        Assert.True(List.isEmpty <| List.repeat 5 [])
+        Assert.AreEqual(["a"; "b"; "c"; "a"; "b"; "c"], List.repeat 2 [ "a"; "b"; "c" ])
+
+        CheckThrowsArgumentException (fun () ->  List.repeat -1 [ 1 ] |> ignore)
+
+    [<Fact>]
     member _.FindBack() =
         // integer List
         let funcInt x = if (x%5 = 0) then true else false

@@ -82,6 +82,7 @@ module internal List =
     val transpose: 'T list list -> 'T list list
     val truncate: int -> 'T list -> 'T list
     val tryLastV: 'T list -> 'T ValueOption
+    val repeat: int -> 'T list -> 'T list
 
 module internal Array =
     // The input parameter should be checked by callers if necessary
