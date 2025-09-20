@@ -511,6 +511,91 @@ module MapTree =
     let foldSection (comparer: IComparer<'Key>) lo hi f m x =
         foldSectionOpt comparer lo hi (OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt f) m x
 
+    let rec balance comparer (t1: MapTree<'Key, 'Value>) k v (t2: MapTree<'Key, 'Value>) =
+        // Given t1 < k < t2 where t1 and t2 are "balanced",
+        // return a balanced tree for <t1, (k, v), t2>.
+        // Recall: balance means subtrees heights differ by at most "tolerance"
+        if isEmpty t1 then
+            add comparer k v t2 // drop t1 = empty
+        elif isEmpty t2 then
+            add comparer k v t1 // drop t2 = empty
+        else if t1.Height = 1 then
+            add comparer k v (add comparer t1.Key t1.Value t2)
+        else
+            let t1n = asNode t1
+
+            if t2.Height = 1 then
+                add comparer k v (add comparer t2.Key t2.Value t1)
+            else
+                let t2n = asNode t2
+                // Have:  (t1l < k1 < t1r) < k < (t2l < k2 < t2r)
+                // Either (a) h1, h2 differ by at most 2 - no rebalance needed.
+                //        (b) h1 too small, i.e. h1+2 < h2
+                //        (c) h2 too small, i.e. h2+2 < h1
+                if t1n.Height + tolerance < t2n.Height then
+                    // case: b, h1 too small
+                    // push t1 into low side of t2, may increase height by 1 so rebalance
+                    rebalance (balance comparer t1 k v t2n.Left) t2n.Key t2n.Value t2n.Right
+                elif t2n.Height + tolerance < t1n.Height then
+                    // case: c, h2 too small
+                    // push t2 into high side of t1, may increase height by 1 so rebalance
+                    rebalance t1n.Left t1n.Key t1n.Value (balance comparer t1n.Right k v t2)
+                else
+                    // case: a, h1 and h2 meet balance requirement
+                    mk t1 k v t2
+
+    let rec split (comparer: IComparer<'Key>) (f: 'Key -> 'Value -> 'Value -> 'Value) pivot v (t: MapTree<'Key, 'Value>) =
+        // Given a pivot and a set t
+        // Return { (k, v) in t s.t. k < pivot }, pivotValue, { (k, v) in t s.t. k > pivot }
+        // where pivotValue = f pivot v v'   if (pivot, v') is in t
+        //                  = v              if pivot is not in t
+        if isEmpty t then
+            empty, v, empty
+        else if t.Height = 1 then
+            let c = comparer.Compare(t.Key, pivot)
+
+            if c < 0 then t, v, empty // singleton under pivot
+            elif c = 0 then empty, f pivot v t.Value, empty // singleton is    pivot
+            else empty, v, t // singleton over  pivot
+        else
+            let tn = asNode t
+            let c = comparer.Compare(pivot, tn.Key)
+
+            if c < 0 then // pivot t1
+                let t11Lo, pivotValue, t11Hi = split comparer f pivot v tn.Left
+                t11Lo, pivotValue, balance comparer t11Hi tn.Key v tn.Right
+            elif c = 0 then // pivot is k1
+                tn.Left, v, tn.Right
+            else // pivot t2
+                let t12Lo, havePivot, t12Hi = split comparer f pivot v tn.Right
+                balance comparer tn.Left tn.Key v t12Lo, havePivot, t12Hi
+
+    let rec union comparer f (t1: MapTree<'Key, 'Value>) (t2: MapTree<'Key, 'Value>) =
+        // Perf: tried bruteForce for low heights, but nothing significant
+        if isEmpty t1 then
+            t2
+        elif isEmpty t2 then
+            t1
+        else if t1.Height = 1 then
+            add comparer t1.Key t1.Value t2
+        else if t2.Height = 1 then
+            add comparer t2.Key t2.Value t1
+        else
+            let t1n = asNode t1
+            let t2n = asNode t2 // (t1l < k < t1r) AND (t2l < k2 < t2r)
+            // Divide and Conquer:
+            //   Suppose t1 is largest.
+            //   Split t2 using pivot k1 into lo and hi.
+            //   Union disjoint subproblems and then combine.
+            if t1n.Height > t2n.Height then
+                let lo, pivotValue, hi = split comparer f t1n.Key t1n.Value t2 in
+
+                balance comparer (union comparer f t1n.Left lo) t1n.Key pivotValue (union comparer f t1n.Right hi)
+            else
+                let lo, pivotValue, hi = split comparer f t2n.Key t2n.Value t1 in
+
+                balance comparer (union comparer f t2n.Left lo) t2n.Key pivotValue (union comparer f t2n.Right hi)
+
     let toList (m: MapTree<'Key, 'Value>) =
         let rec loop (m: MapTree<'Key, 'Value>) acc =
             if isEmpty m then
@@ -821,6 +906,12 @@ type Map<[<EqualityConditionalOn>] 'Key, [<EqualityConditionalOn; ComparisonCond
         MapTree.totalSizeOnMapLookup <- MapTree.totalSizeOnMapLookup + float (MapTree.size tree)
 #endif
         MapTree.tryFind comparer key tree
+
+    member m1.Union(m2: Map<_, _>, onCollision) =
+        Map(m1.Comparer, MapTree.union m1.Comparer onCollision m1.Tree m2.Tree)
+
+    member m1.Union(m2: Map<_, _>) =
+        m1.Union(m2, fun _ _ v -> v)
 
     member m.ToList() =
         MapTree.toList tree
@@ -1244,6 +1335,14 @@ module Map =
                 Some k
             else
                 None)
+
+    [<CompiledName("Union")>]
+    let union (m1: Map<_, _>) (m2: Map<_, _>) =
+        m1.Union(m2)
+
+    [<CompiledName("UnionWith")>]
+    let unionWith onCollision (m1: Map<_, _>) (m2: Map<_, _>) =
+        m1.Union(m2, onCollision)
 
     [<CompiledName("OfList")>]
     let ofList (elements: ('Key * 'Value) list) =
