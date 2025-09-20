@@ -242,6 +242,10 @@ module List =
 
         result
 
+    [<CompiledName("Repeat")>]
+    let repeat (count: int) (source: 'T list) : 'T list =
+        Microsoft.FSharp.Primitives.Basics.List.repeat count source
+
     [<CompiledName("Iterate2")>]
     let iter2 action list1 list2 =
         let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(action)

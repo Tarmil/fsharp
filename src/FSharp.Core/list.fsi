@@ -1771,6 +1771,24 @@ module List =
     [<CompiledName("Replicate")>]
     val replicate: count:int -> initial:'T -> 'T list
 
+    /// <summary>Returns a new list whose content is the content of <c>source</c> repeated <c>count</c> times.</summary>
+    /// <param name="count">The number of times to repeat <c>source</c>.</param>
+    /// <param name="source">The source list to repeat.</param>
+    ///
+    /// <returns>A list containing <c>source</c> repeated <c>count</c> times.</returns>
+    ///
+    /// <exception cref="T:System.ArgumentException">Thrown when count is less than 0.</exception>
+    ///
+    /// <example id="repeat-1">
+    /// <code lang="fsharp">
+    /// let source = [ 1; 2; 3; 4 ]
+    /// source |> List.repeat 3
+    /// </code>
+    /// evaluates to <c>[ 1; 2; 3; 1; 2; 3; 1; 2; 3 ]</c>.
+    /// </example>
+    [<CompiledName("Repeat")>]
+    val repeat : count: int -> source: 'T list -> 'T list
+
     /// <summary>Returns a new list with the elements in reverse order.</summary>
     ///
     /// <param name="list">The input list.</param>

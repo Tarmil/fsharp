@@ -982,6 +982,31 @@ module internal List =
         | [x] -> ValueSome x        
         | _ :: tail -> tryLastV tail           
 
+    // count includes the current iteration and is always at least 2; cases 0 and 1 are handled in the caller
+    let rec repeatFreshConsTail count cons currentSource fullSource =
+        match currentSource with
+        | head :: tail ->
+            let cons2 = freshConsNoTail head
+            setFreshConsTail cons cons2
+            repeatFreshConsTail count cons2 tail fullSource
+        | [] when count = 2 ->
+            // share storage with source for the last repetition
+            setFreshConsTail cons fullSource
+        | [] ->
+            repeatFreshConsTail (count - 1) cons fullSource fullSource
+
+    let repeat count (source: 'T list) =
+        if count < 0 then invalidArgInputMustBeNonNegative "count" count
+        elif count = 0 then []
+        elif count = 1 then source
+        else
+            match source with
+            | [] -> []
+            | head :: tail ->
+                let cons = freshConsNoTail head
+                repeatFreshConsTail count cons tail source
+                cons
+
 module internal Array =
 
     open System
